@@ -15,4 +15,6 @@ let ``Missed rolls`` () =
 
 [<Fact>]
 let ``Spares`` () =
-    Assert.Equal(10, score("1/"))
+    Assert.Equal(10, score("1/"))       
+    Assert.Equal(25, score("1/55"))
+

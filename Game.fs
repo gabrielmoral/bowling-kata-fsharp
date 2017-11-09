@@ -33,12 +33,15 @@ let frames rolls =
     chunks |> Seq.map (fun chunk -> { First = chunk.[0]; Second = chunk.[1]}) |> Seq.toArray
 
 let findFrame frame frames =
-    // let index = Array.IndexOf(frames, frame)
+    let index = Array.IndexOf(frames, frame)
     
-    // let mutable acc = 10
-    // for identifier = index + 1 to array.Length do
-    //     let frame' = array.[identifier]
-    10
+    if index = frames.Length - 1 then 10
+    else 
+        let nextFrame = frames.[index + 1]
+        
+        match nextFrame.Second.Type with
+        | Spare  -> 10
+        | Simple | Missed -> nextFrame.First.Points + 10
 
 let count frames=
     Array.fold (fun state frame -> 
@@ -53,3 +56,5 @@ let score punctuation =
     |> rolls
     |> frames
     |> count
+
+//Eliminate de concept of rolls?? 
