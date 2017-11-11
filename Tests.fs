@@ -17,4 +17,6 @@ let ``Missed rolls`` () =
 let ``Spares`` () =
     Assert.Equal(10, score("1/"))       
     Assert.Equal(25, score("1/55"))
+    Assert.Equal(35, score("1/555/"))
+
 

@@ -30,7 +30,9 @@ let rolls punctuation =
 
 let frames rolls =
     let chunks = Seq.chunkBySize 2 rolls //pairwise??
-    chunks |> Seq.map (fun chunk -> { First = chunk.[0]; Second = chunk.[1]}) |> Seq.toArray
+    chunks 
+    |> Seq.map (fun chunk -> { First = chunk.[0]; Second = chunk.[1]}) 
+    |> Seq.toArray
 
 let findFrame frame frames =
     let index = Array.IndexOf(frames, frame)
@@ -48,7 +50,7 @@ let count frames=
             match frame.First.Type, frame.Second.Type with
             | Simple, Missed | Missed, Simple | Simple, Simple | Missed, Missed
                 -> frame.First.Points + frame.Second.Points + state
-            | _, Spare | Spare, _ ->  findFrame frame frames) 
+            | _, Spare | Spare, _ ->  findFrame frame frames + state) 
             0 frames
 
 let score punctuation =
