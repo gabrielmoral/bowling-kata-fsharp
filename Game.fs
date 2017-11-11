@@ -3,25 +3,20 @@ module Game
 open System
 
 type Roll =
-| Simple
+| Simple of int
 | Missed
 | Spare
 
-type RollInfo = {
-    Points : int;
-    Type : Roll
-}
-
 type Frame = {
-    First : RollInfo;
-    Second : RollInfo;
+    First : Roll;
+    Second : Roll;
 }
 
 let roll throw =
     match throw with
-    | '-' -> { Type = Missed; Points = 0 }
-    | '/' -> { Type = Spare; Points = 0}
-    | _ -> { Type = Simple; Points = throw.ToString() |> int }
+    | '-' -> Missed 
+    | '/' -> Spare
+    | _ -> Simple (throw.ToString() |> int)
 
 let rolls punctuation =
     punctuation 
@@ -34,23 +29,24 @@ let frames rolls =
     |> Seq.map (fun chunk -> { First = chunk.[0]; Second = chunk.[1]}) 
     |> Seq.toArray
 
-let findFrame frame frames =
+let calculateSpare frame frames =
     let index = Array.IndexOf(frames, frame)
     
     if index = frames.Length - 1 then 10
     else 
         let nextFrame = frames.[index + 1]
         
-        match nextFrame.Second.Type with
-        | Spare  -> 10
-        | Simple | Missed -> nextFrame.First.Points + 10
-
+        match nextFrame.First, nextFrame.Second with
+        | Simple points, Simple _ -> points + 10
+        | _, _ -> 10
+       
 let count frames=
-    Array.fold (fun state frame -> 
-            match frame.First.Type, frame.Second.Type with
-            | Simple, Missed | Missed, Simple | Simple, Simple | Missed, Missed
-                -> frame.First.Points + frame.Second.Points + state
-            | _, Spare | Spare, _ ->  findFrame frame frames + state) 
+    Array.fold (fun accPunctuation frame -> 
+            match frame.First, frame.Second with
+            | _, Spare | Spare, _ -> (calculateSpare frame frames) + accPunctuation
+            | Simple points1, Simple points2 -> points1 + points2 + accPunctuation
+            | Simple points, _ | _ , Simple points -> points + accPunctuation
+            | _ , _ -> 0)
             0 frames
 
 let score punctuation =
