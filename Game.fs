@@ -1,13 +1,18 @@
 module Game
 
 open System
+let spareValue = 10
 
 type Roll =
 | Simple of int
 | Missed
 | Spare
 
-let spareValue = 10
+type Frame = {
+    First:Roll;
+    Second:Roll;
+    Index:int
+}
 
 let roll throw =
     match throw with
@@ -20,27 +25,26 @@ let rolls punctuation =
     |> Seq.toList
     |> Seq.map roll
     |> Seq.chunkBySize 2
-    |> Seq.map (fun chunk -> chunk.[0], chunk.[1]) 
+    |> Seq.mapi (fun i chunk -> {Index=i; First=chunk.[0]; Second = chunk.[1]}) 
     |> Seq.toArray
 
-let calculateSpare frame frames =
-    let index = Array.IndexOf(frames, frame)
-    
-    if index = frames.Length - 1 then spareValue
+let calculateSpare frame (frames:Frame[]) =    
+    if frame.Index = frames.Length - 1 then spareValue
     else 
-        let nextFrame = frames.[index + 1]
+        let nextRoll = frames.[frame.Index + 1].First
         
-        match nextFrame with
-        | Simple points, _ -> points + spareValue
-        | _, _ -> spareValue
-       
-let count frames=
-    Array.fold (fun accPunctuation frame -> 
-            match frame with
-            | _, Spare | Spare, _ -> (calculateSpare frame frames) + accPunctuation
-            | Simple points1, Simple points2 -> points1 + points2 + accPunctuation
-            | Simple points, _ | _ , Simple points -> points + accPunctuation
-            | _ , _ -> 0)
+        match nextRoll with
+        | Simple points -> points + spareValue
+        | _ -> spareValue
+
+let count frames =
+    Array.fold (fun accPunctuation frame ->             
+            let framePoints = match frame.First, frame.Second with
+                                | _, Spare -> (calculateSpare frame frames)
+                                | Simple points1, Simple points2 -> points1 + points2
+                                | Simple points, _ | _ , Simple points -> points
+                                | _ , _ -> 0
+            framePoints + accPunctuation)
             0 frames
 
 let score punctuation =
