@@ -31,7 +31,7 @@ let calculateSpare frame frames =
         let nextFrame = frames.[index + 1]
         
         match nextFrame with
-        | Simple points, Simple _ -> points + spareValue
+        | Simple points, _ -> points + spareValue
         | _, _ -> spareValue
        
 let count frames=
