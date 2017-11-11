@@ -7,6 +7,8 @@ type Roll =
 | Missed
 | Spare
 
+let spareValue = 10
+
 let roll throw =
     match throw with
     | '-' -> Missed 
@@ -24,13 +26,13 @@ let rolls punctuation =
 let calculateSpare frame frames =
     let index = Array.IndexOf(frames, frame)
     
-    if index = frames.Length - 1 then 10
+    if index = frames.Length - 1 then spareValue
     else 
         let nextFrame = frames.[index + 1]
         
         match nextFrame with
-        | Simple points, Simple _ -> points + 10
-        | _, _ -> 10
+        | Simple points, Simple _ -> points + spareValue
+        | _, _ -> spareValue
        
 let count frames=
     Array.fold (fun accPunctuation frame -> 
