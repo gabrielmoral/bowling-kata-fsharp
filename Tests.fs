@@ -19,6 +19,12 @@ let ``Spares`` () =
     Assert.Equal(25, score("1/55"))
     Assert.Equal(109, score("1/1/1/1/1/1/1/1/1/1/"))
 
+
+[<Fact>]
+let ``Strikes``() =
+    Assert.Equal(10, score("X-"))
+
+
 [<Fact>]
 let ``Mix roll types``() =
     Assert.Equal(39, score("11--3-1/--1/1/11"))

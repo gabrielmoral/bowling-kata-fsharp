@@ -7,6 +7,7 @@ type Roll =
 | Simple of int
 | Missed
 | Spare
+| Strike of int
 
 type Frame = {
     First:Roll;
@@ -18,6 +19,7 @@ let roll throw =
     match throw with
     | '-' -> Missed 
     | '/' -> Spare
+    | 'X' -> Strike 10
     | _ -> Simple (throw.ToString() |> int)
 
 let rolls punctuation =
@@ -43,6 +45,7 @@ let count frames =
                                 | _, Spare -> (calculateSpare frame frames)
                                 | Simple points1, Simple points2 -> points1 + points2
                                 | Simple points, _ | _ , Simple points -> points
+                                | Strike points, _ -> points
                                 | _ , _ -> 0
             framePoints + accPunctuation)
             0 frames
