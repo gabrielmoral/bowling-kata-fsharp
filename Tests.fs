@@ -23,6 +23,9 @@ let ``Spares`` () =
 [<Fact>]
 let ``Strikes``() =
     Assert.Equal(10, score("X-"))
+    Assert.Equal(21, score("X--12323"))
+    Assert.Equal(18, score("X123"))
+
 
 
 [<Fact>]

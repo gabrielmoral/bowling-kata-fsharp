@@ -1,7 +1,7 @@
 module Game
 
 open System
-let spareValue = 10
+let spareValue = 10 // include this guy as a part of spare??
 
 type Roll =
 | Simple of int
@@ -39,13 +39,23 @@ let calculateSpare frame (frames:Frame[]) =
         | Simple points -> points + spareValue
         | _ -> spareValue
 
+let calculateStrike frame (frames:Frame[]) =
+    if frame.Index = frames.Length - 1 then 10
+    else
+       let firstRoll = frame.Second
+       let secondRoll = frames.[frame.Index + 1].First
+
+       match firstRoll, secondRoll with
+       | Simple points1, Simple points2 -> 10 + points1 + points2
+       | _ -> 10
+
 let count frames =
     Array.fold (fun accPunctuation frame ->             
             let framePoints = match frame.First, frame.Second with
-                                | _, Spare -> (calculateSpare frame frames)
+                                | _, Spare -> calculateSpare frame frames
                                 | Simple points1, Simple points2 -> points1 + points2
+                                | Strike _, _ -> calculateStrike frame frames
                                 | Simple points, _ | _ , Simple points -> points
-                                | Strike points, _ -> points
                                 | _ , _ -> 0
             framePoints + accPunctuation)
             0 frames
