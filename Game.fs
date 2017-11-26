@@ -1,64 +1,60 @@
 module Game
 
-open System
-let spareValue = 10 // include this guy as a part of spare??
-
-type Roll =
-| Simple of int
-| Missed
+type RollType =
+| Simple
 | Spare
-| Strike of int
+| Strike
 
-type Frame = {
-    First:Roll;
-    Second:Roll;
-    Index:int
+type Roll = {
+    Type:RollType;
+    Pins:int
 }
 
 let roll throw =
     match throw with
-    | '-' -> Missed 
-    | '/' -> Spare
-    | 'X' -> Strike 10
-    | _ -> Simple (throw.ToString() |> int)
+    | '-' -> {Type=Simple;Pins=0}
+    | '/' -> {Type=Spare;Pins=10}
+    | 'X' -> {Type=Strike;Pins=10}
+    | _ -> {Type=Simple;Pins=(throw.ToString() |> int)} 
+
+let calculateSpare iroll (rolls:seq<int * Roll>) = 
+    let index, roll = iroll
+    
+    let previousRoll = Seq.tryItem (index - 1) rolls
+    let nextRoll = Seq.tryItem (index + 1) rolls        
+
+    match previousRoll, nextRoll with
+    | Some (_,previousRoll), Some (_, nextRoll) -> nextRoll.Pins + roll.Pins - previousRoll.Pins
+    | Some (_,previousRoll), _ -> roll.Pins - previousRoll.Pins
+    | _ -> 0
+
+let calculateStrike iroll (rolls:seq<int * Roll>) =
+    let index, strike = iroll
+    let restRolls = rolls
+                    |> Seq.filter (fun (i, _) -> i >= index) 
+                    |> Seq.map (fun (_, r) -> r)
+                    |> Seq.tryTake 3 
+                    |> Seq.toList
+
+    if restRolls |> Seq.exists (fun r -> r.Type = Spare ) then
+        strike.Pins + 10
+    else
+        restRolls |> Seq.sumBy (fun r -> r.Pins)
 
 let rolls punctuation =
     punctuation 
     |> Seq.toList
-    |> Seq.map roll
-    |> Seq.chunkBySize 2
-    |> Seq.mapi (fun i chunk -> {Index=i; First=chunk.[0]; Second = chunk.[1]}) 
-    |> Seq.toArray
+    |> Seq.mapi (fun i throw -> (i, roll throw))
 
-let calculateSpare frame (frames:Frame[]) =    
-    if frame.Index = frames.Length - 1 then spareValue
-    else 
-        let nextRoll = frames.[frame.Index + 1].First
-        
-        match nextRoll with
-        | Simple points -> points + spareValue
-        | _ -> spareValue
-
-let calculateStrike frame (frames:Frame[]) =
-    if frame.Index = frames.Length - 1 then 10
-    else
-       let firstRoll = frame.Second
-       let secondRoll = frames.[frame.Index + 1].First
-
-       match firstRoll, secondRoll with
-       | Simple points1, Simple points2 -> 10 + points1 + points2
-       | _ -> 10
-
-let count frames =
-    Array.fold (fun accPunctuation frame ->             
-            let framePoints = match frame.First, frame.Second with
-                                | _, Spare -> calculateSpare frame frames
-                                | Simple points1, Simple points2 -> points1 + points2
-                                | Strike _, _ -> calculateStrike frame frames
-                                | Simple points, _ | _ , Simple points -> points
-                                | _ , _ -> 0
-            framePoints + accPunctuation)
-            0 frames
+let count rolls =
+    Seq.fold (fun accPunctuation iroll -> 
+            let _, roll = iroll            
+            let points = match roll.Type with
+                            | Strike -> calculateStrike iroll rolls
+                            | Spare -> calculateSpare iroll rolls
+                            | Simple -> roll.Pins                                               
+            points + accPunctuation)
+            0 rolls
 
 let score punctuation =
     punctuation 
